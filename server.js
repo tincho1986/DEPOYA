@@ -14,7 +14,7 @@ app.use(cors());
 app.use(express.json());
 
 // Quita sslmode de la URL (evita el warning) y configura SSL explícito
-const dbUrl = (process.env.DATABASE_URL || '').replace(/[?&]sslmode=[^&]*/g, '');
+const dbUrl = (process.env.DATABASE_URL || '').split('?')[0].split('&')[0];
 const pool = new Pool({
   connectionString: dbUrl,
   ssl: dbUrl.includes('localhost') ? false : { rejectUnauthorized: false },
