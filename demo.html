@@ -1,0 +1,257 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>CargaYa Demo v4</title>
+<style>
+body{font-family:system-ui;margin:0;background:#0f172a;color:#e2e8f0}
+.wrap{max-width:980px;margin:0 auto;padding:16px}
+h1{font-size:20px}h1 b{color:#ff5a1f}
+.ver{background:#ff5a1f;color:#fff;border-radius:99px;padding:2px 10px;font-size:11px;font-weight:800}
+.card{background:#1e293b;border-radius:14px;padding:16px;margin:10px 0}
+button{background:#ff5a1f;color:#fff;border:0;border-radius:8px;padding:9px 13px;font-weight:700;cursor:pointer;margin:3px 5px 3px 0;font-size:14px}
+button:disabled{opacity:.5;cursor:default}
+button.ghost{background:#334155}.btn{width:100%;background:#ff5a1f;color:#fff;border:0;border-radius:10px;padding:12px;font-weight:800;font-size:14px;cursor:pointer}
+.btn.green{background:#16a34a}
+.dim{color:#94a3b8;font-size:13px}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.pill{background:#334155;border-radius:99px;padding:4px 10px;font-size:12px}
+.tabs{display:flex;gap:6px;margin:10px 0}
+.tab{flex:1;text-align:center;padding:10px;border-radius:10px;background:#1e293b;color:#94a3b8;font-weight:700;cursor:pointer;border:2px solid transparent;font-size:14px}
+.tab.on{background:#ff5a1f;color:#fff}
+.phone{max-width:390px;margin:0 auto;background:#111827;border:9px solid #334155;border-radius:26px;min-height:560px;display:flex;flex-direction:column;overflow:hidden}
+.phead{background:#ff5a1f;padding:12px 16px;font-weight:800;display:flex;justify-content:space-between}
+.pbody{flex:1;padding:12px;overflow-y:auto;max-height:540px}
+.pfoot{background:#1e293b;padding:12px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.prod{display:flex;justify-content:space-between;align-items:center;background:#1e293b;border-radius:10px;padding:10px;margin-bottom:8px;gap:8px}
+.qty{display:flex;gap:6px;align-items:center}
+.qbtn{width:30px;height:30px;border-radius:6px;background:#334155;color:#fff;border:0;font-weight:800;cursor:pointer;margin:0}
+.chip{border-radius:99px;padding:3px 10px;font-size:11px;font-weight:800;white-space:nowrap}
+.bd{display:flex;justify-content:space-between;font-size:13px;padding:3px 0}
+.total{font-size:20px;font-weight:800;color:#4ade80}
+.step{display:flex;gap:9px;align-items:center;padding:5px 0;font-size:13px;color:#64748b}
+.step .dot{width:26px;height:26px;border-radius:13px;background:#334155;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.step.done .dot{background:#16a34a}.step.cur{color:#fff;font-weight:700}.step.cur .dot{background:#ff5a1f}
+.route{position:relative;height:44px;margin:12px 4px}
+.route .line{position:absolute;top:19px;left:8px;right:8px;height:4px;background:#334155;border-radius:2px}
+.route .fill{position:absolute;top:19px;left:8px;height:4px;background:#ff5a1f;border-radius:2px;transition:width 1s}
+.route .pin{position:absolute;top:10px;font-size:15px}
+.route .truck{position:absolute;top:7px;font-size:19px;transition:left 1s}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.kpi{background:#111827;border-radius:10px;padding:10px;text-align:center}
+.kpi b{display:block;font-size:15px;color:#fff}.kpi span{font-size:10px;color:#94a3b8}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{color:#94a3b8;text-align:left;padding:6px;border-bottom:1px solid #334155}
+td{padding:6px;border-bottom:1px solid #1e293b}
+.offer{border:2px solid #ff5a1f;border-radius:12px;padding:12px;margin-bottom:10px;background:#1e293b}
+.tbar{height:4px;background:#334155;border-radius:2px;overflow:hidden;margin-bottom:8px}
+.tbar i{display:block;height:4px;background:#ff5a1f}
+#toast{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:#ff5a1f;color:#fff;padding:10px 18px;border-radius:10px;font-weight:700;display:none;z-index:99;max-width:92%}
+</style></head><body><div class="wrap">
+<h1>🚚 CargaYa <b>Demo</b> <span class="ver">v4 visual</span> <span class="dim">— 4 apps, datos reales de tu backend</span></h1>
+<div class="row">
+<button class="ghost" data-act="auto">▶️ Demo automática</button>
+<button class="ghost" data-act="reset">♻️ Reset</button>
+<span id="status" class="dim">conectando…</span></div>
+<div class="tabs">
+<div class="tab on" data-act="tab" data-t="client">📱 Cliente</div>
+<div class="tab" data-act="tab" data-t="merchant">🏪 Comercio</div>
+<div class="tab" data-act="tab" data-t="driver">🛵 Repartidor</div>
+<div class="tab" data-act="tab" data-t="admin">🛡️ Admin</div></div>
+<div id="tab-client"><div class="phone">
+<div class="phead"><span>CargaYa</span><span>🏗️</span></div>
+<div class="pbody" id="cbody"></div><div class="pfoot" id="cfoot"></div></div></div>
+<div id="tab-merchant" style="display:none">
+<div class="card"><b>🏪 Corralón La Obra — Pedidos</b><div id="mlist" style="margin-top:10px"></div>
+<div class="dim" style="margin-top:12px">Historial</div><div id="mhist"></div></div></div>
+<div id="tab-driver" style="display:none"><div class="phone">
+<div class="phead"><span>CargaYa Fletes</span><span>🛵</span></div>
+<div class="pbody" id="dbody"></div></div></div>
+<div id="tab-admin" style="display:none">
+<div class="card"><b>🛡️ SuperAdmin</b>
+<div class="kpis" id="kpis" style="margin:12px 0"></div>
+<div class="dim">Ledger contable</div><div id="ledgt"></div></div></div>
+<div id="toast"></div>
+</div>
+<script>
+var _f=window.fetch.bind(window);
+window.fetch=function(u,i){i=i||{};var m=(i.method||'GET').toUpperCase();
+if((m==='GET'||m==='HEAD')&&('body' in i))delete i.body;return _f(u,i)};
+var T={},CFG={},cart={},tab='client',cScreen='shop',cQuote=null,cOrder=null,cItems=null;
+var MO=[],OFF=[],DSHIP=null,DASH=null,LEDG=[],autoRunning=false;
+var CATALOG=[
+{id:'77777771-7777-4777-8777-777777777771',name:'Cemento portland 50 kg',price:9500,tag:'50 kg/bolsa',w:{weightKg:50,lengthCm:55,widthCm:35,heightCm:12}},
+{id:'77777772-7777-4777-8777-777777777772',name:'Cal común 25 kg',price:4200,tag:'25 kg/bolsa',w:{weightKg:25,lengthCm:50,widthCm:30,heightCm:10}}];
+var STEPS=[['accepted','🤝','Aceptado'],['en_route_pickup','🛣️','Yendo al local'],['at_pickup','🏗️','En el local'],['loaded','📦','Cargado'],['in_transit','🚚','En camino'],['at_dropoff','📍','En destino'],['delivered','✅','Entregado']];
+var TRUCKP={accepted:6,en_route_pickup:20,at_pickup:34,loaded:48,in_transit:66,at_dropoff:88,delivered:100};
+var OL={placed:'Nuevo',accepted:'Aceptado',preparing:'Preparando',ready:'Listo',driver_assigned:'Flete asignado',picking_up:'En retiro',picked_up:'Retirado',in_transit:'En camino',arriving:'Llegando',delivered:'Entregado',cancelled:'Cancelado',rejected:'Rechazado'};
+function $(id){return document.getElementById(id)}
+function slp(ms){return new Promise(function(r){setTimeout(r,ms)})}
+function money(n){return '$ '+Number(n||0).toLocaleString('es-AR',{maximumFractionDigits:0})}
+function esc(s){return String(s==null?'':s).replace(/</g,'&lt;')}
+function toast(m){var t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(t._h);t._h=setTimeout(function(){t.style.display='none'},4000)}
+function beep(){try{var c=new(window.AudioContext||window.webkitAudioContext)();
+[0,.18].forEach(function(t){var o=c.createOscillator(),g=c.createGain();o.frequency.value=880;
+o.connect(g);g.connect(c.destination);g.gain.setValueAtTime(.15,c.currentTime+t);
+g.gain.exponentialRampToValueAtTime(.001,c.currentTime+t+.15);o.start(c.currentTime+t);o.stop(c.currentTime+t+.16)})}catch(e){}}
+async function api(p,o){o=o||{};
+var m=(o.method||(o.body?'POST':'GET')).toUpperCase(),h={},tk=T[o.as||'client'];
+if(tk)h['Authorization']='Bearer '+tk;
+var init={method:m,headers:h};
+if(o.body&&m!=='GET'&&m!=='HEAD'){h['Content-Type']='application/json';init.body=JSON.stringify(o.body)}
+var last=null;
+for(var i=0;i<3;i++){try{
+var r=await fetch(p,init);
+if(r.status===502||r.status===503){toast('⏳ el server despierta ('+(i+1)+'/3)…');await slp(5000);continue}
+var j=await r.json().catch(function(){return{}});
+if(!r.ok){var e=new Error(j.message||j.error||('HTTP '+r.status));e.j=j;e.status=r.status;throw e}
+return j}catch(e){if(e.status&&e.status!==502&&e.status!==503)throw e;last=e;await slp(3000)}}
+throw last||new Error('sin respuesta')}
+async function poll(){try{
+MO=await api('/api/merchant/orders',{as:'merchant'});
+OFF=await api('/api/driver/offers',{as:'driver'});
+DSHIP=await api('/api/driver/shipment',{as:'driver'});
+DASH=await api('/api/admin/dashboard',{as:'admin'});
+LEDG=await api('/api/admin/ledger',{as:'admin'});
+render()}catch(e){}}
+function setTab(t){tab=t;
+document.querySelectorAll('.tab').forEach(function(x){x.classList.toggle('on',x.dataset.t===t)});
+['client','merchant','driver','admin'].forEach(function(k){$('tab-'+k).style.display=k===t?'':'none'});
+render()}
+function cartQty(){return Object.keys(cart).reduce(function(a,k){return a+cart[k]},0)}
+function cartSub(){return Object.keys(cart).reduce(function(a,k){var c=CATALOG.find(function(x){return x.id===k});return a+cart[k]*c.price},0)}
+function renderClient(){
+if(cScreen==='shop'){
+ $('cbody').innerHTML='<div style="font-weight:800;margin-bottom:8px">🏗️ Corralón La Obra</div>'+
+CATALOG.map(function(c){var q=cart[c.id]||0;
+return '<div class="prod"><div><b>'+c.name+'</b><div class="dim">'+c.tag+' · '+money(c.price)+'</div></div>'+
+'<div class="qty"><button class="qbtn" data-act="dec" data-id="'+c.id+'">−</button><b>'+q+'</b>'+
+'<button class="qbtn" data-act="inc" data-id="'+c.id+'">+</button></div></div>'}).join('')+
+'<div class="dim" style="text-align:center;margin-top:8px">El envío se cotiza por peso y volumen reales</div>';
+ $('cfoot').innerHTML='<span class="dim">'+cartQty()+' bolsas</span><b>'+money(cartSub())+'</b>'+
+'<button class="btn" data-act="quote" '+(cartQty()?'':'disabled')+'>Cotizar envío 🚚</button>';}
+else if(cScreen==='checkout'&&cQuote){
+var q=cQuote,b=q.recommended.breakdown;
+ $('cbody').innerHTML='<div style="font-weight:800;margin-bottom:8px">🚚 '+q.recommended.vehicleName+'</div>'+
+'<div class="bd"><span>Tarifa base</span><b>'+money(b.baseFee)+'</b></div>'+
+'<div class="bd"><span>Distancia ('+q.distanceKm+' km)</span><b>'+money(b.distanceCost)+'</b></div>'+
+'<div class="bd"><span>Peso cobrable ('+b.chargeableWeightKg+' kg)</span><b>'+money(b.weightCost)+'</b></div>'+
+'<div class="bd"><span>Volumen ('+q.cart.vol.toFixed(2)+' m³)</span><b>'+money(b.volumeCost)+'</b></div>'+
+(b.helpersCost>0?'<div class="bd"><span>Peones ('+q.cart.helpers+')</span><b>'+money(b.helpersCost)+'</b></div>':'')+
+'<hr style="border-color:#334155"><div class="bd"><span>Productos</span><b>'+money(cartSub())+'</b></div>'+
+'<div class="bd"><span>Envío</span><b>'+money(q.recommended.price)+'</b></div>'+
+'<div class="bd" style="font-size:16px"><span><b>Total</b></span><span class="total">'+money(cartSub()+q.recommended.price)+'</span></div>'+
+'<div class="dim" style="margin-top:8px">💵 Pago contra entrega · llega en ~'+q.recommended.etaMinutes+' min</div>'+
+'<button class="btn ghost" style="margin-top:10px" data-act="back">← Volver</button>';
+ $('cfoot').innerHTML='<span class="dim">Paso 2 de 3</span><button class="btn green" data-act="order">Confirmar pedido ✓</button>';}
+else{
+var o=cOrder?MO.find(function(x){return x.id===cOrder.id}):null;
+var st=o&&o.shipment?o.shipment.status:null;
+var idx=STEPS.findIndex(function(s){return s[0]===st});
+var pct=TRUCKP[st]||0;
+ $('cbody').innerHTML=(o?'<div style="font-weight:800">Pedido #'+o.code+'</div><div class="dim">'+OL[o.status]+'</div>':'<div class="dim">Creando pedido…</div>')+
+'<div class="route"><div class="line"></div><div class="fill" style="width:'+pct+'%"></div>'+
+'<span class="pin" style="left:6px">🏗️</span><span class="truck" style="left:'+pct+'%">🚚</span><span class="pin" style="right:6px">📍</span></div>'+
+(o&&o.driver?'<div class="prod"><div><b>'+esc(o.driver.name)+'</b><div class="dim">'+esc(o.driver.plate||'')+'</div></div><span class="chip" style="background:#14532d">★ 5.0</span></div>':'')+
+STEPS.map(function(s,i){var cl=i<idx?'step done':(i===idx?'step cur':'step');
+return '<div class="'+cl+'"><div class="dot">'+(i<idx?'✓':s[1])+'</div>'+s[2]+'</div>'}).join('')+
+(st==='delivered'?'<div style="text-align:center;font-size:30px;margin-top:10px">🎉</div>':'');
+ $('cfoot').innerHTML='<span class="dim">Seguimiento en vivo</span>'+(o?'<b>'+money(o.grandTotal)+'</b>':'');}}
+function renderMerchant(){
+var pend=MO.filter(function(o){return o.status==='placed'});
+ $('mlist').innerHTML=pend.length?pend.map(function(o){
+return '<div class="prod"><div><b>#'+o.code+'</b><div class="dim">'+o.items.length+' arts · '+esc(o.clientName||'')+'</div></div>'+
+'<div><b>'+money(o.grandTotal)+'</b><br><button data-act="accept" data-id="'+o.id+'">✓ Aceptar</button></div></div>'}).join('')
+:'<div class="dim">Sin pedidos pendientes 🔔</div>';
+ $('mhist').innerHTML='<table><tr><th>Pedido</th><th>Estado</th><th>Total</th></tr>'+
+MO.slice(0,8).map(function(o){return '<tr><td>#'+o.code+'</td><td>'+OL[o.status]+'</td><td>'+money(o.grandTotal)+'</td></tr>'}).join('')+'</table>'}
+function renderDriver(){
+if(DSHIP){
+var idx=STEPS.findIndex(function(s){return s[0]===DSHIP.status});
+var needProof=DSHIP.status==='at_pickup'||DSHIP.status==='at_dropoff';
+ $('dbody').innerHTML='<div class="offer"><div class="row" style="justify-content:space-between">'+
+'<b>Viaje activo</b><span class="chip" style="background:#14532d">💰 '+money(DSHIP.driverPayout)+'</span></div>'+
+'<div class="dim">⚖️ '+DSHIP.weightKg+' kg · 📦 '+DSHIP.volumeM3+' m³'+(DSHIP.codAmount>0?' · 💵 cobrar '+money(DSHIP.codAmount):'')+'</div></div>'+
+STEPS.map(function(s,i){var cl=i<idx?'step done':(i===idx?'step cur':'step');
+return '<div class="'+cl+'"><div class="dot">'+(i<idx?'✓':s[1])+'</div>'+s[2]+'</div>'}).join('')+
+(DSHIP.status==='at_pickup'?'<button class="btn" data-act="proof" data-id="pickup" data-ok="1">📸 Foto de carga</button>':'')+
+(DSHIP.status==='at_dropoff'?'<button class="btn" data-act="proof" data-id="delivery" data-ok="1">📸 Foto de entrega</button>'+
+'<button class="btn ghost" data-act="proof" data-id="delivery" data-ok="0">❌ Foto lejos (trampa)</button>':'')+
+(idx>=0&&idx<6?'<button class="btn'+(STEPS[idx+1][0]==='delivered'?' green':'')+'" data-act="st" data-id="'+STEPS[idx+1][0]+'">'+STEPS[idx+1][2]+' →</button>':'')+
+'<div class="dim" style="text-align:center;margin-top:8px">No podés avanzar sin la foto geo-verificada</div>';}
+else if(OFF.length){
+ $('dbody').innerHTML=OFF.map(function(o){var left=Math.max(0,Math.round((new Date(o.expires_at)-Date.now())/1000));
+return '<div class="offer"><div class="tbar"><i style="width:'+Math.min(100,left/120*100)+'%"></i></div>'+
+'<div class="row" style="justify-content:space-between"><b style="font-size:18px;color:#4ade80">'+money(o.payout)+'</b><b>⏱ '+left+'s</b></div>'+
+'<div class="dim">🏗️ '+esc(o.merchant_name)+' · '+esc(o.pickup_address||'')+'</div>'+
+'<div class="row" style="margin-top:6px"><span class="chip">🛣️ '+o.distance_km+' km</span><span class="chip">⚖️ '+o.weight_kg+' kg</span><span class="chip">#'+o.order_code+'</span></div>'+
+'<button class="btn green" data-act="offer" data-id="'+o.id+'">Aceptar flete</button></div>'}).join('');}
+else{$('dbody').innerHTML='<div style="text-align:center;padding:60px 10px" class="dim">🛵<br><br>Online y esperando fletes…<br><br>Hacé un pedido desde la pestaña Cliente y aparecera acá con countdown</div>'}}
+function renderAdmin(){
+if(DASH){$('kpis').innerHTML=
+'<div class="kpi"><span>GMV entregado</span><b>'+money(DASH.gmv)+'</b></div>'+
+'<div class="kpi"><span>Pedidos</span><b>'+(DASH.orders||0)+'</b></div>'+
+'<div class="kpi"><span>Entregados</span><b>'+(DASH.delivered||0)+'</b></div>'+
+'<div class="kpi"><span>Revenue plataforma</span><b>'+money(DASH.platform_revenue)+'</b></div>'+
+'<div class="kpi"><span>Fletes online</span><b>'+(DASH.drivers_online||0)+'</b></div>'+
+'<div class="kpi"><span>Sin asignar</span><b>'+(DASH.unassigned||0)+'</b></div>'}
+ $('ledgt').innerHTML='<table><tr><th>Cuenta</th><th>Movimiento</th><th style="text-align:right">Monto</th></tr>'+
+LEDG.slice(0,12).map(function(l){return '<tr><td>'+l.account_type+'</td><td>'+l.entry_type+'</td><td style="text-align:right;color:'+(l.amount<0?'#f87171':'#4ade80')+'">'+money(l.amount)+'</td></tr>'}).join('')+'</table>'}
+function render(){renderClient();renderMerchant();renderDriver();renderAdmin()}
+async function doQuote(){
+var items=Object.keys(cart).map(function(pid){var c=CATALOG.find(function(x){return x.id===pid});
+return Object.assign({name:c.name,quantity:cart[pid]},c.w)});
+if(!items.length){toast('Agregá productos primero');return}
+cItems=items;
+var q=await api('/api/quotes',{body:{origin:CFG.merchant,dropoff:CFG.dropoff,items:items}});
+cQuote=q;cScreen='checkout';renderClient();
+toast('🚚 '+q.recommended.vehicleName+' · '+money(q.recommended.price)+' ('+q.distanceKm+' km)')}
+async function doOrder(){
+var o=await api('/api/orders',{body:{quoteId:cQuote.quoteId,merchantId:CFG.merchantId,dropoffAddressId:CFG.addressId,paymentMethod:'cash',
+items:Object.keys(cart).map(function(pid){return{productId:pid,quantity:cart[pid]}})}});
+cOrder=o;cScreen='track';beep();renderClient();toast('✅ Pedido '+o.code+' creado');poll()}
+async function doProof(stage,ok){
+var p=ok?(stage==='pickup'?CFG.merchant:CFG.dropoff):{lat:CFG.dropoff.lat+0.06,lng:CFG.dropoff.lng+0.05};
+try{await api('/api/driver/shipments/'+DSHIP.id+'/proofs',{as:'driver',method:'POST',body:{stage:stage,lat:p.lat,lng:p.lng}});
+toast('📸 Foto '+stage+' geo-verificada ✓')}catch(e){toast('❌ '+((e.j&&e.j.error)||'ERROR')+': '+e.message)}
+poll()}
+async function dGo(st){await api('/api/driver/shipments/'+DSHIP.id+'/status',{as:'driver',method:'POST',body:{status:st}});await slp(400);await poll()}
+document.addEventListener('click',async function(ev){
+var b=ev.target.closest('[data-act]');if(!b)return;
+var act=b.dataset.act,id=b.dataset.id;
+if(act==='tab')setTab(b.dataset.t);
+else if(act==='inc'){cart[id]=(cart[id]||0)+1;renderClient()}
+else if(act==='dec'){cart[id]=(cart[id]||0)-1;if(cart[id]<=0)delete cart[id];renderClient()}
+else if(act==='quote'){try{await doQuote()}catch(e){toast('❌ '+e.message)}}
+else if(act==='order'){try{await doOrder()}catch(e){toast('❌ '+e.message)}}
+else if(act==='back'){cScreen='shop';cQuote=null;renderClient()}
+else if(act==='accept'){try{await api('/api/merchant/orders/'+id+'/accept',{as:'merchant',method:'POST'});beep();toast('✓ Aceptado — se creó el envío y salieron ofertas a los fletes');await poll()}catch(e){toast('❌ '+e.message)}}
+else if(act==='offer'){try{var r=await api('/api/driver/offers/'+id+'/accept',{as:'driver',method:'POST'});toast('🛵 Viaje aceptado · ganás '+money(r.payout));await poll()}catch(e){toast('❌ '+((e.j&&e.j.error)||e.message))}}
+else if(act==='st'){try{await dGo(id)}catch(e){toast('❌ '+((e.j&&e.j.error)||e.message))}}
+else if(act==='proof'){await doProof(id,b.dataset.ok==='1')}
+else if(act==='reset'){await fetch('/api/dev/reset',{method:'POST'});cart={};cQuote=null;cOrder=null;cItems=null;cScreen='shop';toast('♻️ Datos reiniciados');poll()}
+else if(act==='auto'){if(autoRunning)return;autoRunning=true;
+try{
+cart={'77777771-7777-4777-8777-777777777771':20,'77777772-7777-4777-8777-777777777772':6};
+setTab('client');cScreen='shop';renderClient();await slp(500);
+await doQuote();await slp(900);
+await doOrder();await slp(900);
+await poll();setTab('merchant');await slp(900);
+var placed=MO.find(function(o){return o.id===cOrder.id});
+if(placed){await api('/api/merchant/orders/'+placed.id+'/accept',{as:'merchant',method:'POST'});beep();await poll()}
+await slp(900);setTab('driver');await slp(600);
+if(OFF[0]){var r=await api('/api/driver/offers/'+OFF[0].id+'/accept',{as:'driver',method:'POST'});toast('🛵 Oferta aceptada · '+money(r.payout));await poll()}
+await dGo('en_route_pickup');await dGo('at_pickup');
+await doProof('pickup',true);await dGo('loaded');
+await dGo('in_transit');await dGo('at_dropoff');
+await doProof('delivery',false);
+await doProof('delivery',true);await dGo('delivered');
+await slp(700);setTab('admin');toast('🎉 Demo completa — mirá los KPIs y el ledger');
+}catch(e){toast('❌ '+((e.j&&e.j.error)||e.message))}autoRunning=false}});
+setInterval(function(){if(tab==='driver')renderDriver()},1000);
+(async function boot(){
+for(var i=0;i<6;i++){try{
+T=await(await fetch('/dev/tokens')).json();
+CFG=await(await fetch('/api/demo/config')).json();
+ $('status').textContent='✓ conectado (v4)';
+setInterval(poll,3000);await poll();return
+}catch(e){$('status').textContent='conectando ('+(i+1)+'/6)…';await slp(6000)}}
+ $('status').textContent='❌ recargá con Ctrl+Shift+R')();
+</script></body></html>
