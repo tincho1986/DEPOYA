@@ -607,7 +607,11 @@ setInterval(async () => {
 }, 5000);
 
 // ═══════════════ DEV helpers ═══════════════
-app.get('/health', (_q, res) => res.json({ ok: true, v: VERSION }));
+app.get('/health', H(async (_q, res) => {
+  let db = 'ok', error = null;
+  try { await pool.query('SELECT 1'); } catch (e) { db = 'fail'; error = e.message; }
+  res.json({ ok: true, v: VERSION, db, error });
+}));
 
 app.get('/dev/tokens', (_q, res) => {
   const mk = (sub, role, extra = {}) =>
