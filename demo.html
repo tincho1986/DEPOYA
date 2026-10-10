@@ -246,12 +246,21 @@ await doProof('delivery',true);await dGo('delivered');
 await slp(700);setTab('admin');toast('🎉 Demo completa — mirá los KPIs y el ledger');
 }catch(e){toast('❌ '+((e.j&&e.j.error)||e.message))}autoRunning=false}});
 setInterval(function(){if(tab==='driver')renderDriver()},1000);
+window.onerror=function(m,s,l){$('status').textContent='❌ JS línea '+l+': '+m;return false};
+window.addEventListener('unhandledrejection',function(ev){$('status').textContent='❌ '+(ev.reason&&ev.reason.message||ev.reason)});
+function fetchT(u,ms){var c=new AbortController();var h=setTimeout(function(){c.abort()},ms||8000);
+return fetch(u,{signal:c.signal}).finally(function(){clearTimeout(h)})}
 (async function boot(){
-for(var i=0;i<6;i++){try{
-T=await(await fetch('/dev/tokens')).json();
-CFG=await(await fetch('/api/demo/config')).json();
+for(var i=0;i<8;i++){
+try{
+ $('status').textContent='paso 1/2 tokens ('+(i+1)+'/8)…';
+T=await(await fetchT('/dev/tokens')).json();
+ $('status').textContent='paso 2/2 config…';
+CFG=await(await fetchT('/api/demo/config')).json();
  $('status').textContent='✓ conectado (v4)';
 setInterval(poll,3000);await poll();return
-}catch(e){$('status').textContent='conectando ('+(i+1)+'/6)…';await slp(6000)}}
- $('status').textContent='❌ recargá con Ctrl+Shift+R')();
+}catch(e){
+ $('status').textContent='reintento ('+(i+1)+'/8): '+(e&&e.message||e);
+await slp(5000)}}
+ $('status').textContent='❌ sin conexión — F12 Console y pasame el error')();
 </script></body></html>
