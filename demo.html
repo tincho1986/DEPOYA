@@ -257,6 +257,8 @@ try{
 T=await(await fetchT('/dev/tokens')).json();
  $('status').textContent='paso 2/2 config…';
 CFG=await(await fetchT('/api/demo/config')).json();
+ var hh=await(await fetchT('/health')).json();
+if(hh.db!=='ok'){ $('status').textContent='✗ BASE DE DATOS: '+(hh.error||'sin conexión'); return; }
  $('status').textContent='✓ conectado (v4)';
 setInterval(poll,3000);await poll();return
 }catch(e){
