@@ -699,7 +699,7 @@ function slp(ms){return new Promise(function(r){setTimeout(r,ms)})}
 function log(m){var p=$('log');p.textContent=(typeof m==='string'?m:JSON.stringify(m,null,1))+'\\n'+p.textContent}
 
 async function api(path,opts){opts=opts||{};
-  var method=(opts.method||'GET').toUpperCase();
+var method=(opts.method||(opts.body?'POST':'GET')).toUpperCase();
   var h={};
   var tk=T[opts.as||'client']; if(tk)h['Authorization']='Bearer '+tk;
   var init={method:method,headers:h};
