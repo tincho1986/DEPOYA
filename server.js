@@ -13,10 +13,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Quita sslmode de la URL (evita el warning) y configura SSL explícito
+const dbUrl = (process.env.DATABASE_URL || '').replace(/[?&]sslmode=[^&]*/g, '');
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: (process.env.DATABASE_URL || '').includes('localhost')
-    ? false : { rejectUnauthorized: false },
+  connectionString: dbUrl,
+  ssl: dbUrl.includes('localhost') ? false : { rejectUnauthorized: false },
 });
 pool.on('error', (e) => console.error('[pg pool]', e.message));
 process.on('unhandledRejection', (r) => console.error('[unhandledRejection]', r));
