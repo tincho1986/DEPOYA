@@ -798,7 +798,7 @@ boot();
 </script></body></html>`;
 
 // 404 + errores
-app.use('/api', (_q, res) => res.status(404).json({ error: 'NOT_FOUND' }));
+app.use('/api', (req, res) => res.status(404).json({ error: 'NOT_FOUND', path: req.originalUrl }));
 app.use((err, _q, res, _n) => {
   const status = err.status || 500;
   if (status >= 500) console.error(err.message);
