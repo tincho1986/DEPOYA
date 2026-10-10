@@ -637,122 +637,15 @@ app.post('/api/dev/reset', H(async (_q, res) => {
   res.json({ ok: true });
 }));
 
-// ═══════════════ PÁGINA DE DEMO (sin caché de navegador) ═══════════════
+// ═══ PÁGINA: se sirve desde demo.html (archivo aparte — el backend ya no la contiene) ═══
+const fs = require('fs');
 app.get('/', (_q, res) => {
   res.set('Cache-Control', 'no-store');
-  res.type('html').send(PAGE);
+  let html;
+  try { html = fs.readFileSync(__dirname + '/demo.html', 'utf8'); }
+  catch { html = '<h2 style="font-family:system-ui;padding:24px">Falta demo.html en el repo (Add file → demo.html).</h2>'; }
+  res.type('html').send(html);
 });
-const PAGE = `<!doctype html><html lang="es"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1"><title>CargaYa Demo v4</title>
-<style>
-body{font-family:system-ui;margin:0;background:#0f172a;color:#e2e8f0}
-.wrap{max-width:980px;margin:0 auto;padding:18px}
-h1{font-size:20px}h1 b{color:#ff5a1f}
-.ver{background:#ff5a1f;color:#fff;border-radius:99px;padding:2px 10px;font-size:11px;font-weight:800;vertical-align:middle}
-.card{background:#1e293b;border-radius:14px;padding:16px;margin:10px 0}
-button{background:#ff5a1f;color:#fff;border:0;border-radius:8px;padding:9px 13px;font-weight:700;cursor:pointer;margin:3px 5px 3px 0;font-size:14px}
-button.ghost{background:#334155}
-.dim{color:#94a3b8;font-size:13px}
-.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-.pill{background:#334155;border-radius:99px;padding:4px 10px;font-size:12px}
-.tabs{display:flex;gap:6px;margin:12px 0}
-.tab{flex:1;text-align:center;padding:10px;border-radius:10px;background:#1e293b;color:#94a3b8;font-weight:700;cursor:pointer;border:2px solid transparent;font-size:14px}
-.tab.on{background:#ff5a1f;color:#fff}
-.phone{max-width:390px;margin:0 auto;background:#111827;border:9px solid #334155;border-radius:26px;min-height:560px;display:flex;flex-direction:column;overflow:hidden}
-.phead{background:#ff5a1f;padding:12px 16px;font-weight:800;display:flex;justify-content:space-between;align-items:center}
-.pbody{flex:1;padding:12px;overflow-y:auto;max-height:520px}
-.pfoot{background:#1e293b;padding:12px;display:flex;justify-content:space-between;align-items:center;gap:10px}
-.prod{display:flex;justify-content:space-between;align-items:center;background:#1e293b;border-radius:10px;padding:10px;margin-bottom:8px;gap:8px}
-.qty{display:flex;gap:6px;align-items:center}
-.qbtn{width:30px;height:30px;border-radius:6px;background:#334155;color:#fff;border:0;font-weight:800;cursor:pointer;margin:0}
-.chip{border-radius:99px;padding:3px 10px;font-size:11px;font-weight:800;white-space:nowrap}
-.bd{display:flex;justify-content:space-between;font-size:13px;padding:3px 0}
-.total{font-size:20px;font-weight:800;color:#4ade80}
-.step{display:flex;gap:9px;align-items:center;padding:5px 0;font-size:13px;color:#64748b}
-.step .dot{width:26px;height:26px;border-radius:13px;background:#334155;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
-.step.done .dot{background:#16a34a}
-.step.cur{color:#fff;font-weight:700}
-.step.cur .dot{background:#ff5a1f}
-.route{position:relative;height:44px;margin:12px 4px}
-.route .line{position:absolute;top:19px;left:8px;right:8px;height:4px;background:#334155;border-radius:2px}
-.route .fill{position:absolute;top:19px;left:8px;height:4px;background:#ff5a1f;border-radius:2px;transition:width 1s}
-.route .pin{position:absolute;top:10px;font-size:15px}
-.route .truck{position:absolute;top:7px;font-size:19px;transition:left 1s}
-.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.kpi{background:#111827;border-radius:10px;padding:10px;text-align:center}
-.kpi b{display:block;font-size:15px;color:#fff}
-.kpi span{font-size:10px;color:#94a3b8}
-table{width:100%;border-collapse:collapse;font-size:12px}
-th{color:#94a3b8;text-align:left;padding:6px;border-bottom:1px solid #334155}
-td{padding:6px;border-bottom:1px solid #1e293b}
-.offer{border:2px solid #ff5a1f;border-radius:12px;padding:12px;margin-bottom:10px;background:#1e293b}
-.tbar{height:4px;background:#334155;border-radius:2px;overflow:hidden;margin-bottom:8px}
-.tbar i{display:block;height:4px;background:#ff5a1f}
-.btn{width:100%;background:#ff5a1f;color:#fff;border:0;border-radius:10px;padding:12px;font-weight:800;font-size:14px;cursor:pointer;margin-top:8px}
-.btn.gray{background:#334155}
-.btn.green{background:#16a34a}
-#toast{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:#ff5a1f;color:#fff;padding:10px 18px;border-radius:10px;font-weight:700;display:none;z-index:99;max-width:90%}
-</style></head><body><div class="wrap">
-<h1>🚚 CargaYa <b>Demo</b> <span class="ver">v4 visual</span> <span class="dim">— 4 apps con datos reales</span></h1>
-<div class="row" style="margin-bottom:6px">
-<button class="ghost" data-act="auto">▶️ Demo automática</button>
-<button class="ghost" data-act="reset">♻️ Reset</button>
-<span id="status" class="dim">conectando…</span></div>
-<div class="tabs">
-<div class="tab on" data-act="tab" data-t="client">📱 Cliente</div>
-<div class="tab" data-act="tab" data-t="merchant">🏪 Comercio</div>
-<div class="tab" data-act="tab" data-t="driver">🛵 Repartidor</div>
-<div class="tab" data-act="tab" data-t="admin">🛡️ Admin</div></div>
-
-<div id="tab-client"><div class="phone">
-<div class="phead"><span>CargaYa</span><span id="cstat">🛒</span></div>
-<div class="pbody" id="cbody"></div>
-<div class="pfoot" id="cfoot"></div></div></div>
-
-<div id="tab-merchant" style="display:none">
-<div class="card"><b>🏪 Corralón La Obra — Panel de pedidos</b><div id="mbody" style="margin-top:10px"></div></div></div>
-
-<div id="tab-driver" style="display:none"><div class="phone">
-<div class="phead"><span>CargaYa Fletes</span><span>🛵</span></div>
-<div class="pbody" id="dbody"></div></div></div>
-
-<div id="tab-admin" style="display:none">
-<div class="card"><b>🛡️ SuperAdmin — Operación</b>
-<div class="kpis" id="kpis" style="margin:12px 0"></div>
-<div class="dim">Pedidos</div><div id="aorders" style="margin:4px 0 14px"></div>
-<div class="dim">Ledger contable (últimos movimientos)</div><div id="ledger" style="margin-top:4px"></div></div></div>
-
-<div id="toast"></div>
-</div>
-<script>
-var _f=window.fetch.bind(window);
-window.fetch=function(u,i){i=i||{};var m=(i.method||'GET').toUpperCase();
-if((m==='GET'||m==='HEAD')&&('body' in i))delete i.body;return _f(u,i)};
-
-var T={},CFG={};
-var ALL=[],DOFF=[],DSHIP=null,DASH={},LEDG=[];
-var cart={},cScreen='shop',cQuote=null,cOrder=null,lastNew=0,tick=0;
-var CATALOG=[
-{id:'77777771-7777-4777-8777-777777777771',name:'Cemento portland 50 kg',price:9500,w:{weightKg:50,lengthCm:55,widthCm:35,heightCm:12}},
-{id:'77777772-7777-4777-8777-777777777772',name:'Cal común 25 kg',price:4200,w:{weightKg:25,lengthCm:50,widthCm:30,heightCm:10}}];
-var SHIP_STEPS=[['accepted','🤝','Aceptado'],['en_route_pickup','🛣️','Yendo al local'],['at_pickup','🏗️','En el local'],['loaded','📦','Cargado'],['in_transit','🚚','En camino'],['at_dropoff','📍','En destino'],['delivered','✅','Entregado']];
-var SHIP_L={accepted:'Aceptado',en_route_pickup:'Yendo al local',at_pickup:'En el local',loaded:'Cargado',in_transit:'En camino',at_dropoff:'En destino',delivered:'Entregado',unassigned:'Buscando flete',offered:'Ofrecido',cancelled:'Cancelado',failed:'Novedad'};
-var ORDER_L={placed:'Nuevo',accepted:'Aceptado',preparing:'Preparando',ready:'Listo',driver_assigned:'Flete asignado',picking_up:'En retiro',picked_up:'Retirado',in_transit:'En camino',arriving:'Llegando',delivered:'Entregado',cancelled:'Cancelado',rejected:'Rechazado'};
-var TRUCK_P={accepted:8,en_route_pickup:22,at_pickup:35,loaded:48,in_transit:65,at_dropoff:88,delivered:100};
-
-function $(id){return document.getElementById(id)}
-function slp(ms){return new Promise(function(r){setTimeout(r,ms)})}
-function money(n){return '$ '+Number(n).toLocaleString('es-AR',{maximumFractionDigits:2})}
-function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;')}
-function toast(m){var t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(t._h);t._h=setTimeout(function(){t.style.display='none'},4000)}
-function beep(){try{var c=new(window.AudioContext||window.webkitAudioContext)();
-[0,.18].forEach(function(t){var o=c.createOscillator(),g=c.createGain();o.frequency.value=880;
-o.connect(g);g.connect(c.destination);g.gain.setValueAtTime(.15,c.currentTime+t);
-g.gain.exponentialRampToValueAtTime(.001,c.currentTime+t+.15);o.start(c.currentTime+t);o.stop(c.currentTime+t+.16)})}catch(e){}}
-
-async function api(path,opts){opts=opts||{};
-var method=(opts.method||(opts.body?'POST':'GET')).toUpperCase();
-var h={};var tk=T[opts.as||'client
 
 // 404 + errores
 app.use('/api', (req, res) => res.status(404).json({ error: 'NOT_FOUND', path: req.originalUrl }));
@@ -762,4 +655,4 @@ app.use((err, _q, res, _n) => {
   res.status(status).json({ error: err.code || 'INTERNAL_ERROR', message: err.message });
 });
 
-app.listen(PORT, () => console.log('🚀 CargaYa demo ' + VERSION + ' en puerto ' + PORT));
+app.listen(PORT, () => console.log('🚀 CargaYa demo v4 en puerto ' + PORT));
