@@ -1,6 +1,6 @@
 // ============================================================
 // CargaYa Demo — backend completo en 1 archivo (Node 18+, sin build)
-// v2: anti-crash (DB dormida), anti-sleep (Render/Neon), retry en cliente
+// v3: sin body en GET (patch global de fetch) + no-store + anti-crash + anti-sleep
 // ============================================================
 require('dotenv').config();
 const express = require('express');
@@ -18,19 +18,16 @@ const pool = new Pool({
   ssl: (process.env.DATABASE_URL || '').includes('localhost')
     ? false : { rejectUnauthorized: false },
 });
-
-// ★ FIX 1: la muerte de conexiones (Neon al despertar) ya NO tira abajo el proceso
 pool.on('error', (e) => console.error('[pg pool]', e.message));
 process.on('unhandledRejection', (r) => console.error('[unhandledRejection]', r));
 process.on('uncaughtException', (e) => console.error('[uncaughtException]', e.message));
 
 const SECRET = process.env.JWT_SECRET || 'devsecret';
 const PORT = process.env.PORT || 3000;
-
-// ★ FIX 2: wrapper anti-crash para handlers async (un error responde 500, no mata el server)
+const VERSION = 'v3';
 const H = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
-// ★ FIX 3: anti-sleep — pings periódicos para que Render y Neon no se duerman
+// Anti-sleep: mantiene Neon y Render despiertos
 const SELF_URL = process.env.RENDER_EXTERNAL_URL || ('http://localhost:' + PORT);
 setInterval(async () => { try { await pool.query('SELECT 1'); } catch (e) {} }, 4 * 60 * 1000);
 setInterval(async () => { try { await fetch(SELF_URL + '/health'); } catch (e) {} }, 10 * 60 * 1000);
@@ -609,7 +606,7 @@ setInterval(async () => {
 }, 5000);
 
 // ═══════════════ DEV helpers ═══════════════
-app.get('/health', (_q, res) => res.json({ ok: true }));
+app.get('/health', (_q, res) => res.json({ ok: true, v: VERSION }));
 
 app.get('/dev/tokens', (_q, res) => {
   const mk = (sub, role, extra = {}) =>
@@ -640,15 +637,19 @@ app.post('/api/dev/reset', H(async (_q, res) => {
   res.json({ ok: true });
 }));
 
-// ═══════════════ PÁGINA DE DEMO ═══════════════
-app.get('/', (_q, res) => res.type('html').send(PAGE));
+// ═══════════════ PÁGINA DE DEMO (sin caché de navegador) ═══════════════
+app.get('/', (_q, res) => {
+  res.set('Cache-Control', 'no-store');
+  res.type('html').send(PAGE);
+});
 
 const PAGE = `<!doctype html><html lang="es"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1"><title>CargaYa Demo</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>CargaYa Demo v3</title>
 <style>
 body{font-family:system-ui;margin:0;background:#0f172a;color:#e2e8f0}
 .wrap{max-width:960px;margin:0 auto;padding:20px}
 h1{font-size:22px}h1 b{color:#ff5a1f}
+.ver{background:#ff5a1f;color:#fff;border-radius:99px;padding:2px 10px;font-size:12px;font-weight:800;vertical-align:middle}
 .card{background:#1e293b;border-radius:12px;padding:16px;margin:12px 0}
 button{background:#ff5a1f;color:#fff;border:0;border-radius:8px;padding:10px 14px;font-weight:700;cursor:pointer;margin:4px 6px 4px 0}
 button.ghost{background:#334155}
@@ -657,7 +658,7 @@ pre{background:#0b1220;padding:12px;border-radius:8px;overflow:auto;max-height:3
 .row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .pill{background:#334155;border-radius:99px;padding:4px 10px;font-size:12px}
 </style></head><body><div class="wrap">
-<h1>🚚 CargaYa <b>Demo</b> <span class="dim">— todo el flujo con un click</span></h1>
+<h1>🚚 CargaYa <b>Demo</b> <span class="ver">v3</span> <span class="dim">— todo el flujo con un click</span></h1>
 <div class="card"><div class="row">
 <button onclick="auto()">▶️ Correr demo completa</button>
 <button class="ghost" onclick="reset()">♻️ Reset datos</button>
@@ -684,16 +685,21 @@ pre{background:#0b1220;padding:12px;border-radius:8px;overflow:auto;max-height:3
 <div class="card"><b>4 · SuperAdmin</b><div class="row">
 <button onclick="dash()">Dashboard</button>
 <button onclick="ledger()">Ver ledger</button></div></div>
-<pre id="log">Tocá ▶️ Correr demo completa (o los botones por paso). Si el server estaba dormido, la primera acción tarda ~30s y reintenta sola.</pre></div>
+<pre id="log">Tocá ▶️ Correr demo completa. Si el server estaba dormido, reintenta solo (~30s).</pre></div>
 <script>
+// ── v3 BLINDAJE: ningún GET/HEAD puede llevar body (elimina el error de fetch) ──
+var _f=window.fetch.bind(window);
+window.fetch=function(u,i){i=i||{};var m=(i.method||'GET').toUpperCase();
+  if((m==='GET'||m==='HEAD')&&('body' in i))delete i.body;
+  return _f(u,i)};
+
 let T={},CFG={},quoteId=null,orderId=null,offerId=null,shipmentId=null,driverOffers=[];
 var $=function(id){return document.getElementById(id)};
 function slp(ms){return new Promise(function(r){setTimeout(r,ms)})}
 function log(m){var p=$('log');p.textContent=(typeof m==='string'?m:JSON.stringify(m,null,1))+'\\n'+p.textContent}
 
-// ★ FIX 4: GET sin body + reintentos automáticos en 502/503 (cold start de Render)
 async function api(path,opts){opts=opts||{};
-  var method=opts.method||'GET';
+  var method=(opts.method||'GET').toUpperCase();
   var h={};
   var tk=T[opts.as||'client']; if(tk)h['Authorization']='Bearer '+tk;
   var init={method:method,headers:h};
@@ -726,14 +732,14 @@ async function boot(){
     try{
       T=await(await fetch('/dev/tokens')).json();
       CFG=await(await fetch('/api/demo/config')).json();
-      $('status').textContent='✓ conectado';
+      $('status').textContent='✓ conectado (v3)';
       setInterval(poll,4000); poll(); return;
     }catch(e){
       $('status').textContent='conectando ('+(i+1)+'/6)… esperá ~30s si acabás de deployar';
       await slp(6000);
     }
   }
-  $('status').textContent='❌ no pude conectar — recargá la página';
+  $('status').textContent='❌ no pude conectar — recargá con Ctrl+F5';
 }
 async function poll(){try{
   var mo=await api('/api/merchant/orders?status=placed',{as:'merchant'});
@@ -786,7 +792,7 @@ async function auto(){try{$('status').textContent='corriendo…';
   await drive('en_route_pickup');await drive('at_pickup');
   await photo('pickup',true);await drive('loaded');await drive('in_transit');await drive('at_dropoff');
   await photo('delivery',false);await photo('delivery',true);await drive('delivered');
-  await dash();await ledger();$('status').textContent='✓ demo completa 🎉'}
+  await dash();await ledger();$('status').textContent='✓ demo completa 🎉 (v3)'}
  catch(e){log('ERROR: '+e.message);$('status').textContent='error (mirá el log)'}}
 boot();
 </script></body></html>`;
@@ -799,4 +805,4 @@ app.use((err, _q, res, _n) => {
   res.status(status).json({ error: err.code || 'INTERNAL_ERROR', message: err.message });
 });
 
-app.listen(PORT, () => console.log('🚀 CargaYa demo en puerto ' + PORT));
+app.listen(PORT, () => console.log('🚀 CargaYa demo ' + VERSION + ' en puerto ' + PORT));
